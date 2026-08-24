@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFC Pay</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 420px;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .status {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 12px;
+      background: #eee;
+    }
+
+    button {
+      width: 100%;
+      padding: 18px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 12px;
+      background: #111;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    button:disabled {
+      background: #999;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>NFC PAY</h1>
+
+    <p>Datàfon NFC</p>
+
+    <div class="status" id="status">
+      Preparat per llegir una targeta
+    </div>
+
+    <button id="scanButton">
+      LLEGIR TARGETA NFC
+    </button>
+
+    <div class="result" id="result"></div>
+
+  </div>
+
+  <script>
+
+    const status = document.getElementById("status");
+    const result = document.getElementById("result");
+    const scanButton = document.getElementById("scanButton");
+
+    scanButton.addEventListener("click", async () => {
+
+      result.innerHTML = "";
+
+      if (!("NDEFReader" in window)) {
+        status.innerText =
+          "Aquest navegador no suporta Web NFC.";
+        return;
+      }
+
+      try {
+
+        const ndef = new NDEFReader();
+
+        await ndef.scan();
+
+        status.innerText =
+          "Apropa ara la targeta NFC al mòbil...";
+
+        ndef.addEventListener("reading", ({ message }) => {
+
+          let identificador = null;
+
+          for (const record of message.records) {
+
+            if (record.recordType === "text") {
+
+              const data = new Uint8Array(record.data.buffer);
+
+              const statusByte = data[0];
+
+              const languageLength =
+                statusByte & 0x3F;
+
+              const textBytes =
+                data.slice(1 + languageLength);
+
+              identificador =
+                new TextDecoder().decode(textBytes);
+            }
+          }
+
+          if (identificador) {
+
+            status.innerText =
+              "Targeta detectada";
+
+            result.innerHTML =
+              "<strong>Identificador:</strong><br>" +
+              identificador;
+
+          } else {
+
+            status.innerText =
+              "Targeta detectada, però no s'ha trobat el text.";
+
+          }
+
+        });
+
+      } catch (error) {
+
+        status.innerText =
+          "No s'ha pogut iniciar la lectura NFC.";
+
+        result.innerText =
+          error.message;
+
+      }
+
+    });
+
+  </script>
+
+</body>
+</html>
