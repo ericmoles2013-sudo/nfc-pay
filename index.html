@@ -113,19 +113,18 @@
 
             if (record.recordType === "text") {
 
-              const data = new Uint8Array(record.data.buffer);
+  const bytes = new Uint8Array(
+    record.data.buffer,
+    record.data.byteOffset,
+    record.data.byteLength
+  );
 
-              const statusByte = data[0];
+  const languageLength = bytes[0] & 0x3F;
 
-              const languageLength =
-                statusByte & 0x3F;
+  const textBytes = bytes.slice(1 + languageLength);
 
-              const textBytes =
-                data.slice(1 + languageLength);
-
-              identificador =
-                new TextDecoder().decode(textBytes);
-            }
+  identificador = new TextDecoder("utf-8").decode(textBytes).trim();
+}
           }
 
           if (identificador) {
