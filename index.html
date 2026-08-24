@@ -108,8 +108,10 @@
         ndef.addEventListener("reading", ({ message }) => {
 
           let identificador = null;
+let registreLlegit = null;
 
           for (const record of message.records) {
+            registreLlegit = record;
 
             if (record.recordType === "text") {
 
@@ -133,8 +135,11 @@
               "Targeta detectada";
 
             result.innerHTML =
-              "<strong>Identificador:</strong><br>" +
-              identificador;
+  "<strong>Text llegit:</strong><br>" +
+  identificador +
+  "<br><br>" +
+  "<strong>Tipus de registre:</strong><br>" +
+  registreLlegit.recordType;
 
           } else {
 
